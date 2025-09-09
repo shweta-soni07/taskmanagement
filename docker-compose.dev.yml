@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: taskmanagement-db-dev
+    environment:
+      POSTGRES_DB: taskmanagement
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      target: dev
+    container_name: taskmanagement-app-dev
+    environment:
+      DATABASE_URL: 'postgresql://postgres:password@postgres:5432/taskmanagement'
+      JWT_SECRET: 'dev-secret-key'
+      JWT_EXPIRES_IN: '24h'
+      PORT: 3000
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+    command: npm run start:dev
+
+volumes:
+  postgres_dev_data:

@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: taskmanagement-db
+    environment:
+      POSTGRES_DB: taskmanagement
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - taskmanagement-network
+
+  # NestJS Application
+  app:
+    build:
+      context: .
+      target: production
+    container_name: taskmanagement-app
+    environment:
+      DATABASE_URL: 'postgresql://postgres:password@postgres:5432/taskmanagement'
+      JWT_SECRET: 'your-super-secret-jwt-key-change-in-production'
+      JWT_EXPIRES_IN: '1h'
+      PORT: 3000
+    ports:
+      - '3000:3000'
+    depends_on:
+      - postgres
+    networks:
+      - taskmanagement-network
+    restart: unless-stopped
+
+  # Development version (optional)
+  app-dev:
+    build:
+      context: .
+      target: dev
+    container_name: taskmanagement-app-dev
+    environment:
+      DATABASE_URL: 'postgresql://postgres:password@postgres:5432/taskmanagement'
+      JWT_SECRET: 'your-super-secret-jwt-key'
+      JWT_EXPIRES_IN: '1h'
+      PORT: 3000
+    ports:
+      - '3001:3000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+    networks:
+      - taskmanagement-network
+    profiles:
+      - dev
+
+volumes:
+  postgres_data:
+
+networks:
+  taskmanagement-network:
+    driver: bridge
