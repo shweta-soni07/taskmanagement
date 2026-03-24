@@ -5,13 +5,15 @@ import {
   IsDateString,
   IsEnum,
   IsInt,
+  MaxLength,
 } from 'class-validator';
 import { TaskStatus } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateTaskDto {
-  @ApiProperty({ example: 'Finish README', description: 'Title of the task' })
+  @ApiProperty({ example: 'Finish README', description: 'Title of the task (max 50 characters)' })
   @IsString()
+  @MaxLength(50, { message: 'Task title must not exceed 50 characters' })
   title: string;
 
   @ApiProperty({
